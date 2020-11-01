@@ -1,6 +1,6 @@
 ---
 title: "Exploratory data analysis of spatial sailing data in R"
-subtitle: "What can we learn from 220 dinghy miles?<br/>(Alternative title: How does a sailing data scientist spend his time in autumn?)"
+subtitle: "What can we learn from 220 dinghy miles?<br/>(Alternative title: That's how a sailing data scientist spend his time in autumn!)"
 author: Sandro Raabe
 date: '`r format(Sys.Date(), "%dth %B, %Y")`'
 output:
@@ -21,11 +21,11 @@ Sys.setlocale("LC_TIME", "English")
 ```
 
 
-```{r out.width = "100%", fig.align = "default"}
+```{r titelbild, out.width = "100%", fig.align = "default"}
 knitr::include_graphics("for_import/2019-05-23 20.59.38.jpg")
 ```
 
-```{r}
+```{r read_data}
 library(XML)
 library(dplyr)
 library(readr)
@@ -56,7 +56,9 @@ gpx_to_tibble <- function(filename){
 }
 
 waterspeed <- map_dfr(list.files("for_import", pattern = "csv", full.names=T), read_csv) %>% 
-  select(Lon = Long, Lat, Time = Date, Course) %>% rlang::set_names(str_to_lower)
+  select(Lon = Long, Lat, Time = Date, Course, Speed = `Speed (m/s)`) %>%
+  rlang::set_names(str_to_lower) %>% 
+  mutate(across(speed, ~.x*1.4384))
 komoot <- list.files("for_import", pattern = ".gpx$", full.names=T) %>% map_dfr(gpx_to_tibble)
 
 metadata1 <- read_csv("for_import/saison2020_meta.csv") %>% mutate(across(Date, date)) %>% 
@@ -318,17 +320,17 @@ draw_leaflet("Boot")#, nrow = 2)
 An interesting question arises: which boat has - on average - which speed (measured in knots)?
 
 ```{r pirateplot, fig.height=5.5, fig.width=12}
-levels <- metadata %>% group_by(Boot) %>%
-  summarize(meanspeed = mean(mean_speed, na.rm=T), .groups = "drop") %>% 
+levels <- all_dat %>% group_by(Boot) %>%
+  summarize(meanspeed = mean(speed, na.rm=T), .groups = "drop") %>% 
   arrange(desc(meanspeed)) %>% filter(!is.na(meanspeed)) %>% pull(Boot)
-dat <- metadata %>% filter(Boot %in% levels) 
+dat <- all_dat %>% filter(Boot %in% levels) 
 dat$Boat <- factor(dat$Boot, levels = levels) 
 
-pirateplot(formula = mean_speed ~ Boat,
-           data = dat, inf.f.o = 0.1, point.o = .8) 
+pirateplot(formula = speed ~ Boat, #point.col = "#6B6B6B",
+           data = dat, inf.f.o = 0.1, point.o = .005) 
 ```
 
-**Observation:** Interestingly, both extremes in terms of weight are also the fastest: The lightweight high performance dinghy *470er* and the massive keel boat *C55*. The *J70* is the Bundesliga competition boat and should normally be faster, but on that particular day there wasn't much wind apparently :-) Next season I should check the C55 a bit more!
+**Observation:** Interestingly, the extremes in terms of weight are also the fastest: The lightweight high performance dinghy *470er* and the massive keel boats *Kielzugvogel* and *C55*, whereas the former beats all other boats in terms of top speed by far. The *J70* is the Bundesliga competition boat and should normally be faster, but on that particular day there wasn't much wind apparently :-)
 
 # Sailing Partners
 
