@@ -1,5 +1,5 @@
 ---
-title: "Exploratory data analysis of spatial data in R"
+title: "Exploratory data analysis of spatial sailing data in R"
 subtitle: "What can we learn from 220 dinghy miles?<br/>(Alternative title: How does a sailing data scientist spend his time in autumn?)"
 author: Sandro Raabe
 date: '`r format(Sys.Date(), "%dth %B, %Y")`'
@@ -17,6 +17,7 @@ variant: markdown_github
 
 ```{r include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
+Sys.setlocale("LC_TIME", "English")
 ```
 
 
@@ -25,6 +26,8 @@ knitr::include_graphics("for_import/2019-05-23 20.59.38.jpg")
 ```
 
 ```{r}
+checkpoint::checkpoint("2020-08-01", checkpointLocation = "/")
+
 library(XML)
 library(dplyr)
 library(readr)
@@ -89,10 +92,10 @@ if (any(is.na(all_dat$Boot))) stop("Boot fehlt manchmal. Metadaten.xlsx nachtrag
 
 # Management Summary
 
-This is a case study on **exploratory data analysis** on manually collected GPS data. With the help of various data wrangling packages (`XML`, `tidyverse`) and visualizations (`ggplot2`, `highcharter`, `leaflet`) we explore relationships, which, however, are not further investigated by hypothesis tests.
+This is a case study on **exploratory data analysis** of manually collected GPS data. Through various data wrangling packages (`XML`, `tidyverse`) and visualization tools  (`ggplot2`, `highcharter`, `leaflet`) we explore relationships in the data, which, however, are not further investigated through hypothesis tests.
 
 # Introduction
-In spring 2020 I joined a [local sailing club](http://www.osgev.de) on the Alster lake in Hamburg, Germany. This summer I used their boats extensively and built up my dinghy sailing skills. I recorded some of these trips with GPS and examined them with various visualization tools. These are some of my insights:
+In spring 2020 I joined a [local dinghy sailing club](http://www.osgev.de) on the Alster lake in Hamburg, Germany. This summer I used their boats extensively and built up my dinghy sailing skills. I recorded some of these trips with GPS and examined them with various visualization tools. These are some of my insights:
 
 * Apparently I don't like sailing on **Wednesdays**.
 * **Thursday** is Alster exploration day.
@@ -153,7 +156,7 @@ ggplot(dfr,aes(x=week,y=day))+
   )
 ```
 
-**Observation:** `r dfr %>% filter(comment=="ja") %>% count(month, sort=T) %>% slice_max(n, n=1) %>% mutate(text = glue("{month} was the most active sailing month ({n} training sessions.")) %>% pull(text)`
+**Observation:** `r dfr %>% filter(comment=="ja") %>% count(month, sort=T) %>% slice_max(n, n=1) %>% mutate(text = glue("{month} was the most active sailing month ({n} training sessions).")) %>% pull(text)`
 
 # Days of the week
 
@@ -181,10 +184,10 @@ make_hist <- function(fill_var, dat = all_dat){
   if(fill_var != "Wochentag") d <- d %>% arrange(desc(n))
 
   highchart() %>% hc_chart(type = "column") %>%
-    hc_add_series(data = d$n, name = "Anzahl Sessions",
+    hc_add_series(data = d$n, name = "number of sessions",
                   showInLegend = FALSE,
                   dataLabels = list(enabled = TRUE)) %>% 
-    hc_title(text = glue("Anzahl Sessions pro {fill_var}")) %>% 
+    hc_title(text = glue("Number of sessions per {fill_var}")) %>% 
     hc_yAxis(text = NULL) %>% 
     hc_xAxis(text = NULL, categories = d$x) %>% 
     hc_colors("#9E9E9E") %>% 
@@ -193,7 +196,7 @@ make_hist <- function(fill_var, dat = all_dat){
 make_hist("Wochentag")
 ```
 
-**Observation:** On Wednesdays, the big alster race *kangaroo regatta* seems to spoil my sailing, but I seem to like to participate at the club's own Tuesday regatta. Alternatively: After our Tuesday's regatta, am I so tired that I rather stay home on Wednesdays?
+**Observation:** On Wednesdays, the big alster race *kangaroo regatta* seems to spoil my sailing, but I seem to like participating at the club's own Tuesday regatta. Alternatively: After our Tuesday's regatta, am I so tired that I rather stay home on Wednesdays?
 
 ## Spatial distribution
 
@@ -313,18 +316,18 @@ draw_leaflet("Boot")#, nrow = 2)
 
 **Observation:** *Conger and* *Kielzugvogel* can get you anywhere, using the *Möwe* you better stay close to the mooring.
 
-## Welches Boot war das schnellste?
+## Which boat is the fastest?
 
-Interessant ist natürlich die Frage, mit welchem Boot man im Durchschnitt welche Geschwindigkeit (angegeben in Knoten) erreicht hat.
+An interesting question arises: which boat has - on average - which speed (measured in knots)?
 
 ```{r fig.height=5.5, fig.width=12}
 levels <- metadata %>% group_by(Boot) %>%
   summarize(meanspeed = mean(mean_speed, na.rm=T), .groups = "drop") %>% 
   arrange(desc(meanspeed)) %>% filter(!is.na(meanspeed)) %>% pull(Boot)
 dat <- metadata %>% filter(Boot %in% levels) 
-dat$Boot <- factor(dat$Boot, levels = levels) 
+dat$Boat <- factor(dat$Boot, levels = levels) 
 
-pirateplot(formula = mean_speed ~ Boot,
+pirateplot(formula = mean_speed ~ Boat,
            data = dat, inf.f.o = 0.1, point.o = .8) 
 ```
 
@@ -334,7 +337,7 @@ pirateplot(formula = mean_speed ~ Boot,
 
 ## Frequency Distribution
 
-```{r}
+```{r treemap}
 lvl_opts <-  list(
   list(
     level = 1,
@@ -361,8 +364,8 @@ dat <- all_dat %>% unnest(cols = c(Segelpartner)) %>%
 
 hchart(dat, type = "treemap", 
        levels = lvl_opts,
-       tooltip = list(valueDecimals = 0, valueSuffix = " Sessions")) %>% 
-  hc_title(text = "Größe entspricht Anzahl Sessions")
+       tooltip = list(valueDecimals = 0, valueSuffix = " sessions")) %>% 
+  hc_title(text = "Size corresponds to number of sessions")
 ```
 
 **Observation:** With `r bind_rows(dat) %>% slice_max(value) %>% pull(value)` sessions I was most often alone. This was most importantly due to the COVID-19 restrictions in May and June 2020 - I had no chance but to learn one-handed sailing.
@@ -371,7 +374,7 @@ hchart(dat, type = "treemap",
 
 We use a static (i.e. not interactive) visualisation of the GPS tracks:
 
-```{r fig.height=10, fig.width=10}
+```{r segelpartner_ggmap, fig.height=10, fig.width=10}
 draw_map("Segelpartner", nrow = 3, colorize = TRUE)
 ```
 
@@ -381,7 +384,7 @@ draw_map("Segelpartner", nrow = 3, colorize = TRUE)
 
 We consider the two-dimensional density function of all driven tracks. In plain english: We can divide the Alster lake into small rectangles and count, how often we hit each rectangle during our sailing sessions. Afterwards, we can colour the rectangles green to red according to their frequency - like a COVID-19 hotspot map!
 
-```{r}
+```{r dichteplot}
 ggmap(alster_map) + stat_density2d(aes(x=lon, y=lat,fill=..level.., alpha=..level..), data=all_dat, geom="polygon")+ 
   scale_fill_gradient(low = "green", high = "red") +
   theme(legend.position = "none", axis.ticks = element_blank(), 
@@ -398,8 +401,8 @@ ggmap(alster_map) + stat_density2d(aes(x=lon, y=lat,fill=..level.., alpha=..leve
 This is just a small, visualisation-driven exploratory data analysis of the 2020 season, mostly univariate and without test of the found hypotheses. Interesting questions arose:
 
 * Can I see the correlation between boat length and boat speed in my data?
-* I there any correlation between wind speed and boat types? Do I prefer certain boats for certain wind conditions?
-* Despite of the `r anz` nautical miles on the alster lake I also completed 280 nm on the Baltic sea in 2020 - we didn't include these here, but that would be an interesting analysis, too.
+* Is there any correlation between wind speed and boat types? Do I prefer certain boats for certain wind conditions?
+* Besides the `r anz` nautical miles on the Alster lake I also completed 280 nm on the Baltic sea in 2020 - we didn't include these here, but that would be an interesting analysis, too.
 
 These questions could easily be examined using hypothesis tests or other machine learning methods, which would be out of scope here. The computer chips in the basement are, however, ready and I still need something to do in 2021 :-)
 
