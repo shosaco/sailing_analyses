@@ -1,6 +1,6 @@
 ---
 title: "Exploratory data analysis of spatial sailing data in R"
-subtitle: "What can we learn from 220 dinghy miles?<br/>(Alternative title: That's how a sailing data scientist spend his time in autumn!)"
+subtitle: "What can we learn from 220 dinghy miles?<br/>(Alternative title: That's how a sailing data scientist spends his time in autumn!)"
 author: Sandro Raabe
 date: '`r format(Sys.Date(), "%dth %B, %Y")`'
 output:
