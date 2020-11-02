@@ -330,6 +330,8 @@ pirateplot(formula = speed ~ Boat, #point.col = "#6B6B6B",
            data = dat, inf.f.o = 0.1, point.o = .005) 
 ```
 
+Interesting to note: *Kielzugvogel* had the highest average (as seen on the bellies of the distribution), but not the highest median speed (thick black line). This is due to outliers in maximum speed, that we encountered using the Zugvogel (median doesn't care about outliers, mean does).
+
 **Observation:** Interestingly, the extremes in terms of weight are also the fastest: The lightweight high performance dinghy *470er* and the massive keel boats *Kielzugvogel* and *C55*, whereas the former beats all other boats in terms of top speed by far. The *J70* is the Bundesliga competition boat and should normally be faster, but on that particular day there wasn't much wind apparently :-)
 
 # Sailing Partners
