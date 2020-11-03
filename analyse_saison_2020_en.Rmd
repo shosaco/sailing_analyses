@@ -26,6 +26,7 @@ knitr::include_graphics("for_import/2019-05-23 20.59.38.jpg")
 ```
 
 ```{r read_data}
+library(prettydoc)
 library(XML)
 library(dplyr)
 library(readr)
@@ -250,12 +251,14 @@ draw_leaflet <- function(col_var){
   
   groups <- unique(dat[[col_var]])
   base <- leaflet() %>% addProviderTiles("CartoDB")  %>%  
-    fitBounds(  lng1 =9.99, lng2 = 10.02,  lat1 = 53.555, lat2 = 53.583)
+    fitBounds(  lng1 =10.01, lng2 = 10.03,  lat1 = 53.555, lat2 = 53.58)
   
   for (i in seq_along(lons)){
     base <- base %>% addPolylines(lons[[i]], lats[[i]], color = "#9E9E9E", group = groups[i], weight = 1.5, opacity = 0.7)
   }
-  base <- base %>% addLayersControl(baseGroups = groups, options = layersControlOptions(collapsed = FALSE))
+  base <- base %>% addLayersControl(baseGroups = groups, 
+                                    position = "topleft",
+                                    options = layersControlOptions(collapsed = FALSE))
   return(base)
 }
 draw_leaflet("Wochentag") #, nrow = 2)
@@ -303,7 +306,7 @@ dat_boote <- all_dat %>% distinct(Datum, Boot) %>% count(Boot) %>% slice_max(n)
 make_hist("Boot")
 ```
 
-With `r  dat_boote$n` sessions *`r dat_boote$Boot`* was my favourite boat. This has two reasons: On the one hand it's a very beginner-friendly boat (I only did my certification in autumn 2019 and have never touched a sail boat before) - the other reason you can find in the [analysis of sailing partners](#frequency-distribution-3) later in this article.
+With `r  dat_boote$n` sessions *`r dat_boote$Boot`* was my favourite boat. This has two reasons: On the one hand it's a very beginner-friendly boat (I only did my certification in autumn 2019 and have never touched a sail boat before) - the other reason you can find in the [analysis of sailing partners](#frequency-distribution-2) later in this article.
 
 **Observation:** Conger boats are great for learning how to sail.
 
