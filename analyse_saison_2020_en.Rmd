@@ -97,11 +97,10 @@ This is a case study on **exploratory data analysis** of manually collected GPS 
 # Introduction
 In spring 2020 I joined a [local dinghy sailing club](http://www.osgev.de) on the Alster lake in Hamburg, Germany. This summer I used their boats extensively and built up my dinghy sailing skills. I recorded some of these trips with GPS and examined them with various visualization tools. These are some of my insights:
 
-* Apparently I don't like sailing on **Wednesdays**.
-* **Thursday** is Alster exploration day.
-* Conger and Kielzugvogel can get you **anywhere**.
+* Apparently I don't like sailing on **Wednesdays** and **Thursday** is Alster exploration day.
 * With the boat type **Möwe** one apparently prefers to stay **close to the mooring**.
-* **Corona** enhances **one-handed sailing skills**.
+* **Kielzugvogel** should take part in **German Sailing League**
+* **Corona** enhances **solo sailing skills**.
 * GPS tracks of Regatta races look like **balls of wool**.
 * The center of the Alster is (as expected) the **sailing hotspot**.
 
@@ -299,7 +298,7 @@ The heading around 15° (North-Northeast) and 165° (South-Southeast) seems to b
 
 # Boats
 
-## Frequency Distribution
+## Frequency
 
 ```{r histogramm_boote}
 dat_boote <- all_dat %>% distinct(Datum, Boot) %>% count(Boot) %>% slice_max(n) 
@@ -320,26 +319,28 @@ draw_leaflet("Boot")#, nrow = 2)
 
 ## Which boat is the fastest?
 
-An interesting question arises: which boat has - on average - which speed (measured in knots)?
+An interesting question arises: Which boat performs best, and what is *perfomance*? Is it top speed, regardless of wind conditions? Is it speed compared to wind speed? To subtract the influence of different wind speeds from of the single sessions, we re-calculate the measured boat speed in comparison to the wind speed and thus make the speed dimensionless as **speed in % of wind speed** - 100% means that we went *as fast as the wind*, at 50% *half as fast* et cetera.
+
 
 ```{r pirateplot, fig.height=5.5, fig.width=12}
-levels <- all_dat %>% group_by(Boot) %>%
-  summarize(meanspeed = mean(speed, na.rm=T), .groups = "drop") %>% 
+levels <- all_dat %>% group_by(Boot) %>% 
+  summarize(meanspeed = mean(speed/wind_speed*100, na.rm=T), .groups = "drop") %>% 
   arrange(desc(meanspeed)) %>% filter(!is.na(meanspeed)) %>% pull(Boot)
 dat <- all_dat %>% filter(Boot %in% levels) 
 dat$Boat <- factor(dat$Boot, levels = levels) 
 
-pirateplot(formula = speed ~ Boat, #point.col = "#6B6B6B",
-           data = dat, inf.f.o = 0.1, point.o = .005) 
+pirateplot(formula = speed/wind_speed*100 ~ Boat,# point.col = "#6B6B6B",
+           data = dat, inf.f.o = 0, point.o = .005) 
+title(main = "Boat speed relativ to Wind Speed")
 ```
 
-Interesting to note: *Kielzugvogel* had the highest average (as seen on the bellies of the distribution), but not the highest median speed (thick black line). This is due to outliers in maximum speed, that we encountered using the Zugvogel (median doesn't care about outliers, mean does).
+Interesting to note: Small *Conger* was almost twice as fast as the wind at its top speed, but the racing dinghies *470er* and *Laser* were only half as fast as the wind on average. They only perform well at high wind speeds, other don't need as much.
 
-**Observation:** Interestingly, the extremes in terms of weight are also the fastest: The lightweight high performance dinghy *470er* and the massive keel boats *Kielzugvogel* and *C55*, whereas the former beats all other boats in terms of top speed by far. The *J70* is the Bundesliga competition boat and should normally be faster, but on that particular day there wasn't much wind apparently :-)
+**Beobachtung:** Kielzugvogel and J70 (the boat used in Bundesliga/German Sailing League) get most power out of any given wind - Kielzugvogel should probably participate at Bundesliga races?
 
 # Sailing Partners
 
-## Frequency Distribution
+## Frequency
 
 ```{r treemap}
 lvl_opts <-  list(
@@ -366,10 +367,11 @@ dat <- all_dat %>% unnest(cols = c(Segelpartner)) %>%
   select(-color) %>% 
   rename(color = col) %>% as.list %>% transpose()
 
-hchart(dat, type = "treemap", 
+hchart(dat, type = "treemap", layoutAlgorithm = "strip",
        levels = lvl_opts,
        tooltip = list(valueDecimals = 0, valueSuffix = " sessions")) %>% 
-  hc_title(text = "Size corresponds to number of sessions")
+  hc_title(text = "Size corresponds to number of sessions") %>% 
+  hc_size(height = 400)
 ```
 
 **Observation:** With `r bind_rows(dat) %>% slice_max(value) %>% pull(value)` sessions I was most often alone. This was most importantly due to the COVID-19 restrictions in May and June 2020 - I had no chance but to learn one-handed sailing.
