@@ -306,7 +306,7 @@ dat_boote <- all_dat %>% distinct(Datum, Boot) %>% count(Boot) %>% slice_max(n)
 make_hist("Boot")
 ```
 
-With `r  dat_boote$n` sessions *`r dat_boote$Boot`* was my favourite boat. This has two reasons: On the one hand it's a very beginner-friendly boat (I only did my certification in autumn 2019 and have never touched a sail boat before) - the other reason you can find in the [analysis of sailing partners](#frequency-2) later in this article.
+With `r  dat_boote$n` sessions *`r dat_boote$Boot`* was my favourite boat. This has two reasons: On the one hand it's a very beginner-friendly boat (I only did my certification in autumn 2019 and have never touched a sail boat before) - the other reason you can find in the [analysis of sailing partners](#frequency-1) later in this article.
 
 **Observation:** Conger boats are great for learning how to sail.
 
