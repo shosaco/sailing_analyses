@@ -1,6 +1,6 @@
 ---
 title: "Exploratory data analysis of spatial sailing data in R"
-subtitle: "What can we learn from 220 dinghy miles?<br/>(Alternative title: That's how a sailing data scientist spends his time in autumn!)"
+subtitle: "What can we learn from 230 dinghy miles?<br/>(Alternative title: That's how a sailing data scientist spends his time in autumn!)"
 author: Sandro Raabe
 date: '`r format(Sys.Date(), "%dth %B, %Y")`'
 output:
@@ -220,7 +220,8 @@ draw_map <- function(col_var, nrow, colorize=FALSE){
   # durch unnest werden Strecken doppelt bei 2 Segelpartnern gezeichnet -> ok!
   out <- ggmap(alster_map) + geom_point(data = dat,
                                         aes(lon,lat, color = I(col)), size=0.1, alpha=0.7) +
-    theme(legend.position = "none", axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank()) +
+    theme(legend.position = "none", axis.ticks = element_blank(),
+          axis.text = element_blank(), axis.title = element_blank()) +
     theme(
       plot.background = element_rect(fill = "transparent"),
       panel.background = element_rect(fill = "transparent")
@@ -305,7 +306,7 @@ dat_boote <- all_dat %>% distinct(Datum, Boot) %>% count(Boot) %>% slice_max(n)
 make_hist("Boot")
 ```
 
-With `r  dat_boote$n` sessions *`r dat_boote$Boot`* was my favourite boat. This has two reasons: On the one hand it's a very beginner-friendly boat (I only did my certification in autumn 2019 and have never touched a sail boat before) - the other reason you can find in the [analysis of sailing partners](#frequency-distribution-2) later in this article.
+With `r  dat_boote$n` sessions *`r dat_boote$Boot`* was my favourite boat. This has two reasons: On the one hand it's a very beginner-friendly boat (I only did my certification in autumn 2019 and have never touched a sail boat before) - the other reason you can find in the [analysis of sailing partners](#frequency-2) later in this article.
 
 **Observation:** Conger boats are great for learning how to sail.
 
@@ -334,7 +335,7 @@ pirateplot(formula = speed/wind_speed*100 ~ Boat,# point.col = "#6B6B6B",
 title(main = "Boat speed relativ to Wind Speed")
 ```
 
-Interesting to note: Small *Conger* was almost twice as fast as the wind at its top speed, but the racing dinghies *470er* and *Laser* were only half as fast as the wind on average. They only perform well at high wind speeds, other don't need as much.
+Interesting to note: Small *Conger* was almost twice as fast as the wind at its top speed, but the racing dinghies *470er* and *Laser* were only half as fast as the wind on average. These only perform well at high wind speeds, other don't need as much wind, especially if they are lightweight and have large sails (which is the case with the two winners).
 
 **Beobachtung:** Kielzugvogel and J70 (the boat used in Bundesliga/German Sailing League) get most power out of any given wind - Kielzugvogel should probably participate at Bundesliga races?
 
@@ -363,9 +364,10 @@ dat <- all_dat %>% unnest(cols = c(Segelpartner)) %>%
   mutate(n=1) %>% 
   data_to_hierarchical(group_vars = Segelpartner, size_var = n) %>% 
   bind_rows() %>% 
-  add_colors("name") %>% 
-  select(-color) %>% 
-  rename(color = col) %>% as.list %>% transpose()
+  add_colors("name") %>%
+  select(-color) %>%
+  rename(color = col) %>%
+  as.list %>% transpose()
 
 hchart(dat, type = "treemap", layoutAlgorithm = "strip",
        levels = lvl_opts,
@@ -384,11 +386,11 @@ We use a static (i.e. not interactive) visualisation of the GPS tracks:
 draw_map("Segelpartner", nrow = 3, colorize = TRUE)
 ```
 
-**Observation:** Racing partners Christoph, Bernd and Jochem with their tracks shaped like balls of wool.
+**Observation:** Clearly visible are racing partners Christoph, Bernd and Jochem with their tracks shaped like balls of wool.
 
 # Favourite Alster Regions
 
-We consider the two-dimensional density function of all driven tracks. In plain english: We can divide the Alster lake into small rectangles and count, how often we hit each rectangle during our sailing sessions. Afterwards, we can colour the rectangles green to red according to their frequency - like a COVID-19 hotspot map!
+We consider the two-dimensional density function of all driven tracks. In simple words: We divide the Alster lake into small rectangles and count how often we cross each rectangle during our sailing sessions. Then we can colour the rectangles green to red according to their frequency - like a COVID-19 hotspot map!
 
 ```{r dichteplot}
 ggmap(alster_map) + stat_density2d(aes(x=lon, y=lat,fill=..level.., alpha=..level..), data=all_dat, geom="polygon")+ 
@@ -407,7 +409,7 @@ ggmap(alster_map) + stat_density2d(aes(x=lon, y=lat,fill=..level.., alpha=..leve
 This is just a small, visualisation-driven exploratory data analysis of the 2020 season, mostly univariate and without test of the found hypotheses. Interesting questions arose:
 
 * Can I see the correlation between boat length and boat speed in my data?
-* Is there any correlation between wind speed and boat types? Do I prefer certain boats for certain wind conditions?
+* Can I leverage the *yardstick* system for a further boat vs. speed research?
 * Besides the `r anz` nautical miles on the Alster lake I also completed 280 nm on the Baltic sea in 2020. We didn't include these here, but that would be an interesting analysis, too.
 
 These questions could easily be examined using hypothesis tests or other machine learning methods, which would be out of scope here. The computer chips in the basement are, however, ready and I still need something to do in 2021 :-)
